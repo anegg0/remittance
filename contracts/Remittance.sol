@@ -1,57 +1,52 @@
 pragma solidity ^0.4.4;
 
 contract Remittance {
-		address owner;
+		address Owner;
 		address sender;
 		address exchange;
-		bytes32 EmailedPassword;
-		bytes32 WhisperedPassword;
-		bytes32 hashedEmailedPassword;
-		bytes32 hashedWhisperedPassword;
+		uint256 hashEmailedPassword;
+		uint256 hashWhisperedPassword;
 
 	function Remittance() {
-		owner = msg.sender;
+		Owner = msg.sender;
 	}
 
 	struct RemittanceToken {
 		address recipient;
 		uint remittableAmount;
-		bytes32 emailedPwd;
-		bytes32 whisperedPwd;
+		uint256 hashPasswordsPair;
     }
 
     modifier ownerOnly() {
-        require(msg.sender == owner);
+        require(msg.sender == Owner);
         _;
     }
 
 	mapping(address => RemittanceToken) Tokens;
 	address[] tokenIndex;
-	function RemittanceTokenConstructor(address recipient, uint remittableAmount, bytes32 emailedPassword, bytes32 whisperedPassword)
+	function RemittanceTokenConstructor(address recipient, uint remittableAmount, uint256 hashEmailedPassword, uint256 hashWhisperedPassword)
 	returns(bool success)
 	 {
         Tokens[recipient].recipient = recipient;
 		Tokens[recipient].remittableAmount = remittableAmount;
-        Tokens[recipient].emailedPwd = keccak256(emailedPassword);
-        Tokens[recipient].whisperedPwd = keccak256(whisperedPassword);
+        Tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
 		tokenIndex.push(recipient);
 		return true;
     }
 
-
-	function RemittanceAuthenticate(address recipient, bytes32 emailedPassword, bytes32 whisperedPassword)
+	function RemittanceAuthenticate(address recipient, uint256 hashEmailedPassword, uint256 hashEmailedPassword)
 	external
 	ownerOnly()
 	returns(bool)
 	{
 		sender = msg.sender;
-		require(keccak256(emailedPassword) == Tokens[recipient].emailedPwd);
-		require(keccak256(whisperedPassword) == Tokens[recipient].whisperedPwd);
+		require(hashEmailedPassword) == Tokens[recipient].hashEmailedPassword;
+		require(hashWhisperedPassword) == Tokens[recipient].hashWhisperedPassword;
 		sender.transfer(Tokens[recipient].remittableAmount);
 		return true;
-	}
-		function die()
-    {
+		}
+
+	function Die() {
         require(msg.sender == Owner);
         suicide(Owner);
     }
