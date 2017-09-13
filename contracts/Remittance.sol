@@ -7,6 +7,8 @@ contract Remittance {
 		uint256 hashEmailedPassword;
 		uint256 hashWhisperedPassword;
 
+    event LogTransferToExchange(uint amount,bytes32 doubleHash,uint deadline);
+
 	function Remittance() {
 		Owner = msg.sender;
 	}
@@ -34,14 +36,13 @@ contract Remittance {
 		return true;
     }
 
-	function RemittanceAuthenticate(address recipient, uint256 hashEmailedPassword, uint256 hashEmailedPassword)
+	function RemittanceAuthenticate(address recipient)
 	external
 	ownerOnly()
 	returns(bool)
 	{
 		sender = msg.sender;
-		require(hashEmailedPassword) == Tokens[recipient].hashEmailedPassword;
-		require(hashWhisperedPassword) == Tokens[recipient].hashWhisperedPassword;
+		require(hashEmailedPassword) == Tokens[recipient].hashPasswordsPair;
 		sender.transfer(Tokens[recipient].remittableAmount);
 		return true;
 		}
