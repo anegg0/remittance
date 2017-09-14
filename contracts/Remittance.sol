@@ -30,7 +30,7 @@ contract Remittance {
 
 	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function RemittanceTokenConstructor(address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
+	function RemittanceTokenBuilder(address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
 	returns(bool success)
 	 {
         tokens[recipient].recipient = recipient;
