@@ -4,11 +4,14 @@ contract Remittance {
 		address Owner;
 		address sender;
 		address exchange;
-		uint256 hashEmailedPassword;
-		uint256 hashWhisperedPassword;
+		bytes32 hashEmailedPassword;
+		bytes32 hashWhisperedPassword;
+		bytes32 hashPasswordsPair;
+		bytes32 SentPasswords;
 		bytes transactionData;
 
-    event LogTokenAuthentication(address recipient, bool success);
+        event LogTokenAuthentication(address recipient, bool success);
+        event RemittanceTokenCreation(address recipient);
 
 	function Remittance() {
 		Owner = msg.sender;
@@ -17,7 +20,7 @@ contract Remittance {
 	struct RemittanceToken {
 		address recipient;
 		uint remittableAmount;
-		uint256 hashPasswordsPair;
+		bytes32 hashPasswordsPair;
     }
 
     modifier ownerOnly() {
@@ -27,27 +30,28 @@ contract Remittance {
 
 	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function RemittanceTokenConstructor(address recipient, uint remittableAmount, uint256 hashEmailedPassword, uint256 hashWhisperedPassword)
+	function RemittanceTokenConstructor(address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
 	returns(bool success)
 	 {
         tokens[recipient].recipient = recipient;
 		tokens[recipient].remittableAmount = remittableAmount;
-        tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
+        tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword, hashWhisperedPassword);
 		tokenIndex.push(recipient);
+		RemittanceTokenCreation(recipient);
 		return true;
     }
 
-	function TokenAuthenticator(address recipient)
+	function TokenAuthenticator(address recipient, bytes32 hashPasswordsPair)
 	external
 	ownerOnly()
 	returns(bool success)
 	{
 		sender = msg.sender;
 		require(recipient == sender);
-		require(hashPasswordsPair) == tokens[recipient].hashPasswordsPair;
+		SentPasswords = hashPasswordsPair;
+		if(hashPasswordsPair == tokens[recipient].hashPasswordsPair) 
 		sender.transfer(tokens[recipient].remittableAmount);
-		// transactionData = eth.getTransaction(txHash).data;
-		LogTokenAuthentication(recipient, success);
+		LogTokenAuthentication(sender, success);
 		return true;
 		}
 
