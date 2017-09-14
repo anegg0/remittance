@@ -8,7 +8,7 @@ contract Remittance {
 		uint256 hashWhisperedPassword;
 		bytes transactionData;
 
-    event LogTransferToExchange(address recipient, uint hashPasswordsPair);
+    // event LogTransferToExchange(address recipient, uint hashPasswordsPair);
 
 	function Remittance() {
 		Owner = msg.sender;
@@ -43,11 +43,11 @@ contract Remittance {
 	returns(bool)
 	{
 		sender = msg.sender;
+		require(recipient == sender);
 		require(hashEmailedPassword) == tokens[recipient].hashPasswordsPair;
-		// sender.transfer(tokens[recipient].remittableAmount);
+		sender.transfer(tokens[recipient].remittableAmount);
 		transactionData = eth.getTransaction(txHash).data;
-		LogTransferToExchange(t
-		tokens[recipient].remittableAmount)
+		// LogTransferToExchange(t
 		return true;
 		}
 
