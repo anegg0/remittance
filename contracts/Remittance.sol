@@ -1,57 +1,61 @@
 pragma solidity ^0.4.4;
 
 contract Remittance {
-		address owner;
+		address Owner;
 		address sender;
 		address exchange;
-		bytes32 EmailedPassword;
-		bytes32 WhisperedPassword;
-		bytes32 hashedEmailedPassword;
-		bytes32 hashedWhisperedPassword;
+		bytes32 hashEmailedPassword;
+		bytes32 hashWhisperedPassword;
+		bytes32 hashPasswordsPair;
+		bytes32 SentPasswords;
+		bytes transactionData;
+
+        event LogTokenAuthentication(address recipient, bool success);
+        event RemittanceTokenCreation(address recipient, uint remittableAmount);
 
 	function Remittance() {
-		owner = msg.sender;
+		Owner = msg.sender;
 	}
 
 	struct RemittanceToken {
 		address recipient;
 		uint remittableAmount;
-		bytes32 emailedPwd;
-		bytes32 whisperedPwd;
+		bytes32 hashPasswordsPair;
     }
 
     modifier ownerOnly() {
-        require(msg.sender == owner);
+        require(msg.sender == Owner);
         _;
     }
 
-	mapping(address => RemittanceToken) Tokens;
+	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function RemittanceTokenConstructor(address recipient, uint remittableAmount, bytes32 emailedPassword, bytes32 whisperedPassword)
+	function RemittanceTokenConstructor(address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
 	returns(bool success)
 	 {
-        Tokens[recipient].recipient = recipient;
-		Tokens[recipient].remittableAmount = remittableAmount;
-        Tokens[recipient].emailedPwd = keccak256(emailedPassword);
-        Tokens[recipient].whisperedPwd = keccak256(whisperedPassword);
+        tokens[recipient].recipient = recipient;
+		tokens[recipient].remittableAmount = remittableAmount;
+        tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword, hashWhisperedPassword);
 		tokenIndex.push(recipient);
+	    RemittanceTokenCreation(recipient, remittableAmount);
 		return true;
     }
 
-
-	function RemittanceAuthenticate(address recipient, bytes32 emailedPassword, bytes32 whisperedPassword)
+	function TokenAuthenticator(address recipient, bytes32 hashPasswordsPair)
 	external
 	ownerOnly()
-	returns(bool)
+	returns(bool success)
 	{
 		sender = msg.sender;
-		require(keccak256(emailedPassword) == Tokens[recipient].emailedPwd);
-		require(keccak256(whisperedPassword) == Tokens[recipient].whisperedPwd);
-		sender.transfer(Tokens[recipient].remittableAmount);
+		require(recipient == sender);
+		SentPasswords = hashPasswordsPair;
+		if(hashPasswordsPair == tokens[recipient].hashPasswordsPair) 
+		sender.transfer(tokens[recipient].remittableAmount);
 		return true;
-	}
-		function die()
-    {
+		LogTokenAuthentication(sender, success);
+		}
+
+	function Die() {
         require(msg.sender == Owner);
         suicide(Owner);
     }

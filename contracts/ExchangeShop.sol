@@ -4,19 +4,12 @@ import "./ConvertLib.sol";
 
 contract ExchangeShop {
 	uint 	desiredCurrencyRate;
-	bytes32 EmailedPassword;
-	bytes32 WhisperedPassword;
 	address Recipient;
 	uint 	convertedRemittableAmount;
-	bytes32 hashedEmailedPassword;
-	bytes32 hashedWhisperedPassword;
+	uint256 hashEmailedPassword;
+	uint256 hashWhisperedPassword;
 	address remittanceContract;
 	address Owner;
-	bytes32 passwordToSend;
-
-function ExchangeShop() {
-		Owner = msg.sender;
-	}
 
 function ExchangeShop(address _remittanceContract) {
 		Owner = msg.sender;
@@ -26,8 +19,7 @@ function ExchangeShop(address _remittanceContract) {
 
 	struct RemittanceToken {
 		address recipient;
-		bytes32 emailedPwd;
-		bytes32 whisperedPwd;
+		uint256 hashPasswordsPair;
     }
 
     modifier ownerOnly() {
@@ -35,16 +27,13 @@ function ExchangeShop(address _remittanceContract) {
         _;
     }
 
-	mapping(address => RemittanceToken) Tokens;
+	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function RemittanceTokenConstructor(address recipient, bytes32 emailedPassword, bytes32 whisperedPassword)
+	function RemittanceTokenConstructor(address recipient, uint256 hashEmailedPassword, uint256 hashWhisperedPassword)
 	returns(bool success)
 	 {
-		emailedPassword = keccak256(emailedPassword);
-		whisperedPassword = keccak256(whisperedPassword);
-        Tokens[recipient].recipient = recipient;
-        Tokens[recipient].emailedPwd = emailedPassword;
-        Tokens[recipient].whisperedPwd = whisperedPassword;
+        tokens[recipient].recipient = recipient;
+        tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
 		tokenIndex.push(recipient);
 		return true;
     }
@@ -52,14 +41,15 @@ function ExchangeShop(address _remittanceContract) {
 function exchange(uint desiredCurrencyRate)
 returns(bool success)
 	{
-		convertedRemittableAmount = ConvertLib.convert(msg.value,desiredCurrencyRate);
+		convertedRemittableAmount = ConvertLib.convert(msg.value, desiredCurrencyRate);
 		Recipient.transfer(convertedRemittableAmount);
 	}
 
-function AuthenticateRemittance(address recipient)
+function AuthenticateRemittance(address recipient, uint256 hashPasswordsPair)
 returns(bool success)
 	 {
-		remittanceContract.transfer(Tokens[recipient]);
+        hashPasswordsPair = tokens[recipient].hashPasswordsPair;
+		remittanceContract.transfer(hashPasswordsPair);
 	}
 
 function die()
