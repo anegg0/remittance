@@ -8,7 +8,7 @@ contract Remittance {
 		uint256 hashWhisperedPassword;
 		bytes transactionData;
 
-    // event LogTransferToExchange(address recipient, uint hashPasswordsPair);
+    event LogTokenAuthentication(address recipient, bool success);
 
 	function Remittance() {
 		Owner = msg.sender;
@@ -30,24 +30,24 @@ contract Remittance {
 	function RemittanceTokenConstructor(address recipient, uint remittableAmount, uint256 hashEmailedPassword, uint256 hashWhisperedPassword)
 	returns(bool success)
 	 {
-        Tokens[recipient].recipient = recipient;
-		Tokens[recipient].remittableAmount = remittableAmount;
-        Tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
+        tokens[recipient].recipient = recipient;
+		tokens[recipient].remittableAmount = remittableAmount;
+        tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
 		tokenIndex.push(recipient);
 		return true;
     }
 
-	function RemittanceTokenAuthenticate(address recipient)
+	function TokenAuthenticator(address recipient)
 	external
 	ownerOnly()
-	returns(bool)
+	returns(bool success)
 	{
 		sender = msg.sender;
 		require(recipient == sender);
-		require(hashEmailedPassword) == tokens[recipient].hashPasswordsPair;
+		require(hashPasswordsPair) == tokens[recipient].hashPasswordsPair;
 		sender.transfer(tokens[recipient].remittableAmount);
-		transactionData = eth.getTransaction(txHash).data;
-		// LogTransferToExchange(t
+		// transactionData = eth.getTransaction(txHash).data;
+		LogTokenAuthentication(recipient, success);
 		return true;
 		}
 
