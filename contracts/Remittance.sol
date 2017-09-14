@@ -11,7 +11,7 @@ contract Remittance {
 		bytes transactionData;
 
         event LogTokenAuthentication(address recipient, bool success);
-        event RemittanceTokenCreation(address recipient);
+        event RemittanceTokenCreation(address recipient, uint remittableAmount);
 
 	function Remittance() {
 		Owner = msg.sender;
@@ -37,7 +37,7 @@ contract Remittance {
 		tokens[recipient].remittableAmount = remittableAmount;
         tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword, hashWhisperedPassword);
 		tokenIndex.push(recipient);
-		RemittanceTokenCreation(recipient);
+	    RemittanceTokenCreation(recipient, remittableAmount);
 		return true;
     }
 
@@ -51,8 +51,8 @@ contract Remittance {
 		SentPasswords = hashPasswordsPair;
 		if(hashPasswordsPair == tokens[recipient].hashPasswordsPair) 
 		sender.transfer(tokens[recipient].remittableAmount);
-		LogTokenAuthentication(sender, success);
 		return true;
+		LogTokenAuthentication(sender, success);
 		}
 
 	function Die() {
