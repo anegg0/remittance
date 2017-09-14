@@ -27,13 +27,13 @@ function ExchangeShop(address _remittanceContract) {
         _;
     }
 
-	mapping(address => RemittanceToken) Tokens;
+	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
 	function RemittanceTokenConstructor(address recipient, uint256 hashEmailedPassword, uint256 hashWhisperedPassword)
 	returns(bool success)
 	 {
-        Tokens[recipient].recipient = recipient;
-        Tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
+        tokens[recipient].recipient = recipient;
+        tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
 		tokenIndex.push(recipient);
 		return true;
     }
@@ -48,7 +48,7 @@ returns(bool success)
 function AuthenticateRemittance(address recipient, uint256 hashPasswordsPair)
 returns(bool success)
 	 {
-        hashPasswordsPair = Tokens[recipient].hashPasswordsPair;
+        hashPasswordsPair = tokens[recipient].hashPasswordsPair;
 		remittanceContract.transfer(hashPasswordsPair);
 	}
 
