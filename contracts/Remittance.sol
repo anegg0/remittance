@@ -3,13 +3,9 @@ pragma solidity ^0.4.4;
 contract Remittance {
 		address Owner;
 		address sender;
-		address exchange;
-		bytes32 hashEmailedPassword;
-		bytes32 hashWhisperedPassword;
 		bytes32 lock;
-		bytes32 sentLock;
 		bytes transactionData;
-		uint256 remittableAmount;
+		int remittableAmount;
 
         event LogTokenAuthentication(address recipient, bool success);
         event RemittanceTokenCreation(address recipient, uint remittableAmount);
@@ -22,6 +18,7 @@ contract Remittance {
 		address recipient;
 		uint remittableAmount;
 		bytes32 lock;
+		address exchange;
     }
 
     modifier ownerOnly() {
@@ -31,11 +28,12 @@ contract Remittance {
 
 	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function remittanceTokenConstructor(address exchangeAddress, address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
+	function remittanceTokenConstructor(address exchange, address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
 	returns(bool success)
 	 {
-		lock = keccak256(hashEmailedPassword, hashWhisperedPassword, exchangeAddress);
+		lock = keccak256(hashEmailedPassword, hashWhisperedPassword);
         tokens[recipient].recipient = recipient;
+		tokens[recipient].exchange = exchange;
 		tokens[recipient].remittableAmount = remittableAmount;
         tokens[recipient].lock = lock;
 		tokenIndex.push(recipient);
@@ -48,11 +46,10 @@ contract Remittance {
 	ownerOnly()
 	returns(bool success)
 	{
-		remittableAmount = tokens[recipient].remittableAmount;
 		sender = msg.sender;
 		require(recipient == sender);
 		lock = sentLock;
-		if (lock == tokens[recipient].lock) 
+		if (lock == tokens[recipient].lock && msg.sender == tokens[recipient].exchange) 
 		sender.transfer(tokens[recipient].remittableAmount);
 		return true;
 		LogTokenAuthentication(sender, success);

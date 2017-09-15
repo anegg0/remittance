@@ -2,16 +2,17 @@ pragma solidity ^0.4.4;
 
 import "./ConvertLib.sol";
 
-contract ExchangeShop {
+contract exchangeShop {
 	uint 	desiredCurrencyRate;
 	address Recipient;
 	uint 	convertedRemittableAmount;
-	uint256 hashEmailedPassword;
-	uint256 hashWhisperedPassword;
+	bytes32 hashEmailedPassword;
+	bytes32 hashWhisperedPassword;
+	bytes32 hashPasswordsPair;
 	address remittanceContract;
 	address Owner;
 
-function ExchangeShop(address _remittanceContract) {
+function exchangeShop(address _remittanceContract) {
 		Owner = msg.sender;
 		remittanceContract = _remittanceContract;
 		desiredCurrencyRate = 265;
@@ -19,7 +20,7 @@ function ExchangeShop(address _remittanceContract) {
 
 	struct RemittanceToken {
 		address recipient;
-		uint256 hashPasswordsPair;
+		bytes32 hashPasswordsPair;
     }
 
     modifier ownerOnly() {
@@ -29,11 +30,12 @@ function ExchangeShop(address _remittanceContract) {
 
 	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function RemittanceTokenConstructor(address recipient, uint256 hashEmailedPassword, uint256 hashWhisperedPassword)
+	function remittanceTokenConstructor(address recipient, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
 	returns(bool success)
 	 {
-        tokens[recipient].recipient = recipient;
-        tokens[recipient].hashPasswordsPair = keccak256(hashEmailedPassword,hashWhisperedPassword);
+        hashPasswordsPair = keccak256(hashEmailedPassword, hashWhisperedPassword);
+		tokens[recipient].recipient = recipient;
+        tokens[recipient].hashPasswordsPair = hashPasswordsPair;
 		tokenIndex.push(recipient);
 		return true;
     }
@@ -45,7 +47,7 @@ returns(bool success)
 		Recipient.transfer(convertedRemittableAmount);
 	}
 
-function AuthenticateRemittance(address recipient, uint256 hashPasswordsPair)
+function authenticateRemittance(address recipient, bytes32 hashPasswordsPair)
 returns(bool success)
 	 {
         hashPasswordsPair = tokens[recipient].hashPasswordsPair;
@@ -55,6 +57,6 @@ returns(bool success)
 function die()
     {
         require(msg.sender == Owner);
-        suicide(Owner);
+        selfdestruct(Owner);
     }
 }
