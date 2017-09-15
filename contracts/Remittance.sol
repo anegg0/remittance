@@ -18,7 +18,7 @@ contract Remittance {
 		address recipient;
 		uint remittableAmount;
 		bytes32 lock;
-		address exchange;
+		address authorizedExchange;
     }
 
     modifier ownerOnly() {
@@ -28,12 +28,12 @@ contract Remittance {
 
 	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function remittanceTokenConstructor(address exchange, address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
+	function remittanceTokenBuilder(address authorizedExchange, address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
 	returns(bool success)
 	 {
-		lock = keccak256(hashEmailedPassword, hashWhisperedPassword);
+		lock = keccak256(hashEmailedPassword, hashWhisperedPassword, authorizedExchange);
         tokens[recipient].recipient = recipient;
-		tokens[recipient].exchange = exchange;
+		tokens[recipient].authorizedExchange = authorizedExchange;
 		tokens[recipient].remittableAmount = remittableAmount;
         tokens[recipient].lock = lock;
 		tokenIndex.push(recipient);
