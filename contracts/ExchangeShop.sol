@@ -1,14 +1,15 @@
 pragma solidity ^0.4.4;
 
 import "./ConvertLib.sol";
+import "./Remittance.sol";
 
 contract exchangeShop {
 	uint 	desiredCurrencyRate;
-	address Recipient;
+	address recipient;
 	uint 	convertedRemittableAmount;
 	bytes32 hashEmailedPassword;
 	bytes32 hashWhisperedPassword;
-	bytes32 hashPasswordsPair;
+	bytes32 HashPasswordPair;
 	address remittanceContract;
 	address Owner;
 
@@ -30,29 +31,23 @@ function exchangeShop(address _remittanceContract) {
 
 	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function remittanceTokenConstructor(address recipient, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
-	returns(bool success)
-	 {
-        hashPasswordsPair = keccak256(hashEmailedPassword, hashWhisperedPassword);
-		tokens[recipient].recipient = recipient;
-        tokens[recipient].hashPasswordsPair = hashPasswordsPair;
-		tokenIndex.push(recipient);
-		return true;
-    }
+
 	
 function exchange(uint desiredCurrencyRate)
 returns(bool success)
 	{
 		convertedRemittableAmount = ConvertLib.convert(msg.value, desiredCurrencyRate);
-		Recipient.transfer(convertedRemittableAmount);
+		recipient.transfer(convertedRemittableAmount);
 	}
 
-function authenticateRemittance(address recipient, bytes32 hashPasswordsPair)
-returns(bool success)
-	 {
-        hashPasswordsPair = tokens[recipient].hashPasswordsPair;
-		remittanceContract.transfer(hashPasswordsPair);
-	}
+  remittance RemAuth;
+  function myContract(address _addressRemittance) {
+    RemAuth = Remittance(_addressRemittance);
+  }
+  function remittanceAuth() {
+    recipient = tokens[recipient].recipient;
+	RemAuth.tokenAuthenticator(recipient, HashPasswordPair);
+  }	
 
 function die()
     {

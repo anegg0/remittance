@@ -1,9 +1,11 @@
 pragma solidity ^0.4.4;
 
+import "./ExchangeShop.sol";
+
 contract Remittance {
 		address Owner;
 		address sender;
-		bytes32 passwordPair;
+		bytes32 hashPasswordPair;
 		bytes transactionData;
 		int remittableAmount;
 		address recipient;
@@ -20,6 +22,7 @@ contract Remittance {
 		uint remittableAmount;
 		bytes32 lock;
 		address authorizedExchange;
+		uint desiredCurrencyRate;
     }
 
     modifier ownerOnly() {
@@ -29,32 +32,40 @@ contract Remittance {
 
 	mapping(address => RemittanceToken) tokens;
 	address[] tokenIndex;
-	function remittanceTokenBuilder(address authorizedExchange, address recipient, uint remittableAmount, bytes32 hashEmailedPassword, bytes32 hashWhisperedPassword)
+	function remittanceTokenBuilder(address authorizedExchange, address recipient, uint remittableAmount, uint desiredCurrencyRate)
 	returns(bool success)
 	 {
-		passwordPair = keccak256(hashEmailedPassword, hashWhisperedPassword, authorizedExchange);
+		//hashPasswordPair is a hash of the Emailed Password and the password that has been given in person 
         tokens[recipient].recipient = recipient;
 		tokens[recipient].authorizedExchange = authorizedExchange;
+		tokens[recipient].desiredCurrencyRate = desiredCurrencyRate;
 		tokens[recipient].remittableAmount = remittableAmount;
-        tokens[recipient].lock = passwordPair;
+        tokens[recipient].lock = hashPasswordPair;
 		tokenIndex.push(recipient);
 	    RemittanceTokenCreation(recipient, remittableAmount);
 		return true;
     }
 
-	function tokenAuthenticator(address recipient, bytes32 sentPasswordPair, uint8 v, bytes32 r, bytes32 s)
+	function tokenAuthenticator(address recipient, bytes32 sentHashPasswordPair)
 	external
 	ownerOnly()
 	returns(bool success)
 	{
-		sender = msg.sender;
+		sender = msg.sender; 
 		require(recipient == sender);
-		passwordPair = sentPasswordPair;
-		if (passwordPair == tokens[recipient].lock && msg.sender == tokens[recipient].authorizedExchange && ecrecover(lock, v, r, s) == msg.sender) 
+		if (sentHashPasswordPair == tokens[recipient].lock && msg.sender == tokens[recipient].authorizedExchange)
 		sender.transfer(tokens[recipient].remittableAmount);
 		return true;
 		LogTokenAuthentication(sender, success);
 		}
+
+exchangeShop Exch;
+  function myContract(address _addressExchangeShop) {
+    Exch = exchangeShop(_addressExchangeShop);
+  }
+  function remittanceExch() {
+    Exch.exchange();
+  }
 
 	function die() {
         require(msg.sender == Owner);
